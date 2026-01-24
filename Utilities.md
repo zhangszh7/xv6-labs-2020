@@ -4,7 +4,7 @@
 - [x]  sleep
 - [x]  pingpong  
 - [x]  primes 
-- [ ]  
+- [ ]  find
 
 ## Boot xv6
 
@@ -62,21 +62,18 @@ hints:
 - It's simplest to directly write 32-bit (4-byte) ints to the pipes, rather than using formatted ASCII I/O.
 - add to `UPROGS` in the Makefile.
 
+improvment:
+- simplify the logic, make use of the abstraction.
+- add comments, make the code easy to read.
+- version 1.0: iteration (all in one)  ->  version 2.0: recursion
+(more)
+- Guard Clauses: (for code style)
+`"Return early, fail fast"`, inspect errors first with just `if` statements.
 
 
+## find
 
-
-
-
-
-
-
-
-
-
-
-
-
+target:
 
 
 
