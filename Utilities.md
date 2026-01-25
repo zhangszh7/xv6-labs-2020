@@ -4,7 +4,8 @@
 - [x]  sleep
 - [x]  pingpong  
 - [x]  primes 
-- [ ]  find
+- [x]  find
+- [ ]  xargs
 
 ## Boot xv6
 
@@ -74,6 +75,38 @@ improvment:
 ## find
 
 target:
+- find all the files in a directory tree with a specific name. 
+
+hints:
+- `ls.c`: how to read directories.
+- use recursion.
+- don't recurse into `.` and `..`.
+- read C book, learn how to manipulat a string.
+- use `make clean` to delete fs.img(the virtual disk) if the file system fails.
+- `strcmp()`: compare strings.
+- UPROGS
+
+improvment:
+
+(although the code passed the test in just one run, there were some latent problems which I didn't notice.)
+- `fd`: when I opened a file and used `If-return` to check errors, I just returned without `close(fd)`.
+- `T_DEVICE` also needs to consider.
+- consider that users possibly pass a file name as the top directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
