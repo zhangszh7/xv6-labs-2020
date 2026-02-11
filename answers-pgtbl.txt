@@ -1,0 +1,8 @@
+problem1:
+- page 0 contains a stack page.
+- data.
+- no.
+
+
+problem2:
+- len is too big to make (srcva + len) overflow, so that the sum becommes smaller than srcva.
