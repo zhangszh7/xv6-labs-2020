@@ -1,0 +1,11 @@
+1. a0~a7 contain arguments, a2 holds 13.
+
+2. Neither function f nor function g is explicitly called in the main assembly code (there are no jal or call instructions targeting them). Because of compiler optimization (specifically function inlining and constant folding), the compiler traced the execution of f(8) -> g(8) -> 8 + 3 = 11 during compilation. It then computed the final result of 11 + 1 = 12 and directly embedded this constant into the instruction li a1, 12. 
+
+3. 0x630. 
+
+4. 0x38.
+
+5. The output is HE110 World. set i to 0x726c6400, don't need to change 57616.
+
+6. a garbage value in a2.

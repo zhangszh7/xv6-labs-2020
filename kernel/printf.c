@@ -121,6 +121,7 @@ panic(char *s)
   printf("panic: ");
   printf(s);
   printf("\n");
+  backtrace();
   panicked = 1; // freeze uart output from other CPUs
   for(;;)
     ;
@@ -132,3 +133,36 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+
+
+// list the function calls on the stack 
+// above the point at which the error occurred.
+void
+backtrace()
+{
+    struct proc *p = myproc();
+    uint64 last_fp;
+    uint64 *fp = (uint64 *)(r_fp());
+    uint64 ra;
+
+    printf("backtrace:\n");
+
+    while(1){
+        ra = *(fp - 1);
+        last_fp = *(fp - 2);
+
+        printf("%p\n", ra);
+
+        if(PGROUNDDOWN(last_fp) != p->kstack){
+            // printf("fp:%p  kstack:%p", PGROUNDDOWN(last_fp), p->kstack);
+            break;
+        }
+        fp = (uint64 *)last_fp;
+    }
+
+    return;
+
+}
+
+
+

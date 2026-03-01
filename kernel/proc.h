@@ -81,6 +81,8 @@ struct trapframe {
 };
 
 enum procstate { UNUSED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+enum {OFF = -1};
+enum handlerstate{DURING, FREE, RETURNING};
 
 // Per-process state
 struct proc {
@@ -103,4 +105,13 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int ticks;
+  uint64 handler;
+  int timer;
+  struct trapframe *snapshot;
+  enum handlerstate hstate;   // the handler state
+
+
+
 };

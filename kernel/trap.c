@@ -77,8 +77,22 @@ usertrap(void)
     exit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
-    yield();
+  if(which_dev == 2){
+
+      if(p->timer != OFF && p->hstate == FREE){
+          p->timer -= 1;
+
+          // call the handler
+          if(p->timer == 0){
+              memmove(p->snapshot, p->trapframe, PGSIZE);
+              p->hstate = DURING;
+              p->trapframe->epc = p->handler;
+              p->timer = p->ticks;
+          }
+      }
+
+      yield();
+  }
 
   usertrapret();
 }
@@ -95,6 +109,11 @@ usertrapret(void)
   // kerneltrap() to usertrap(), so turn off interrupts until
   // we're back in user space, where usertrap() is correct.
   intr_off();
+
+  if(p->hstate == RETURNING){
+      p->hstate = FREE;
+  }
+
 
   // send syscalls, interrupts, and exceptions to trampoline.S
   w_stvec(TRAMPOLINE + (uservec - trampoline));
