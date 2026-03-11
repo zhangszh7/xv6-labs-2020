@@ -1,7 +1,8 @@
 # Lab: traps
-- [ ]   riscv assembly
-- [ ]   backtrace
-- [ ]   alarm
+- [x]   riscv assembly
+- [x]   backtrace
+- [x]   alarm
+- [ ]   optional
 
 # Preparation
 - chapter4
