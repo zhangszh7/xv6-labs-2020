@@ -18,6 +18,7 @@ extern char trampoline[], uservec[], userret[];
 void kernelvec();
 
 extern int devintr();
+extern int lazyalloc(pagetable_t, uint64);
 
 void
 trapinit(void)
@@ -71,19 +72,13 @@ usertrap(void)
     } else if((which_dev = devintr()) != 0){
         // ok
     } else {
-        if((r_scause() == LOAD_FAULT || r_scause() == STORE_FAULT) &&
-                (p->trapframe->sp < r_stval() && r_stval() < p->sz)){
-
-            char *mem = kalloc();
-            if(mem == 0)
-                p->killed = 1;
-            else{
-                memset((void*)mem, 0, PGSIZE);
-
-                if(mappages(p->pagetable, PGROUNDDOWN(r_stval()), PGSIZE, (uint64)mem, PTE_U | PTE_R | PTE_W | PTE_X) != 0){
-                    kfree((void*)mem);
+        if((r_scause() == LOAD_FAULT || r_scause() == STORE_FAULT)){ 
+            if(lazyalloc(p->pagetable, r_stval()) != 0){
                     p->killed = 1;
-                }
+                    printf("usertrap(): lazyalloc failed\n");
+                    printf("           scause %p pid=%d"
+                           " sepc=%p stval=%p\n",
+                           r_scause(), p->pid, r_sepc(), r_stval());
             }
         }
         else{
@@ -91,6 +86,7 @@ usertrap(void)
             printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
             p->killed = 1;
         }
+        
     }
 
     if(p->killed)
