@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 
+#define STORE_FAULT 15
 struct spinlock tickslock;
 uint ticks;
 
@@ -15,6 +16,8 @@ extern char trampoline[], uservec[], userret[];
 void kernelvec();
 
 extern int devintr();
+
+extern pte_t * walk(pagetable_t pagetable, uint64 va, int alloc);
 
 void
 trapinit(void)
@@ -68,9 +71,33 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
-    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    p->killed = 1;
+      pte_t *pte = walk(p->pagetable, r_stval(), 0); 
+
+      if((r_scause() == STORE_FAULT) && (*pte & PTE_COW)){
+        uint64 pa = PTE2PA(*pte);
+
+        char *mem;
+        mem = kalloc();
+        if(mem != 0){
+            memset(mem, 0, PGSIZE);
+            if(mappages(p->pagetable, PGROUNDDOWN(r_stval()), PGSIZE, (uint64)mem, PTE_W| PTE_X | PTE_R | PTE_U) != 0){
+                kfree(mem);
+                p->killed = 1;
+            }
+            else{
+                memmove(mem, (char *)pa, PGSIZE);
+                sub_reference((void *)pa);
+            }
+        }
+        else{
+            p->killed = 1;
+        }
+      }
+      else{
+        printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
+        printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+        p->killed = 1;
+      }
   }
 
   if(p->killed)

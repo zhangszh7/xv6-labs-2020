@@ -64,6 +64,7 @@ void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
 void            add_reference(void *);
+void            sub_reference(void *);
 
 // log.c
 void            initlog(int, struct superblock*);

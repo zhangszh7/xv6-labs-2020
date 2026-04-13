@@ -57,26 +57,15 @@ kfree(void *pa)
     if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
         panic("kfree");
 
-    int count;
+    // Fill with junk to catch dangling refs.
+    memset(pa, 1, PGSIZE);
 
-    acquire(&ref.lock);
-    if(ref.counts[PA2INDEX(pa)] > 0)
-        ref.counts[PA2INDEX(pa)] -= 1;
-    count = ref.counts[PA2INDEX(pa)];
-    release(&ref.lock);
-    
-    if(count == 0){
-        // Fill with junk to catch dangling refs.
-        memset(pa, 1, PGSIZE);
+    r = (struct run*)pa;
 
-        r = (struct run*)pa;
-
-        acquire(&kmem.lock);
-        r->next = kmem.freelist;
-        kmem.freelist = r;
-        release(&kmem.lock);
-    }
-
+    acquire(&kmem.lock);
+    r->next = kmem.freelist;
+    kmem.freelist = r;
+    release(&kmem.lock);
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -96,12 +85,6 @@ kalloc(void)
     if(r)
         memset((char*)r, 5, PGSIZE); // fill with junk
 
-    if(r){
-        acquire(&ref.lock);
-        ref.counts[PA2INDEX(r)] = 1;
-        release(&ref.lock);
-    }
-
     return (void*)r;
 }
 
@@ -110,10 +93,22 @@ kalloc(void)
 void 
 add_reference(void* pa)
 {
-    if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
-        panic("add_reference");
-
     acquire(&ref.lock);
     ref.counts[PA2INDEX(pa)] += 1;
     release(&ref.lock);
 }
+
+void
+sub_reference(void *pa)
+{
+    int count;
+    acquire(&ref.lock);
+    ref.counts[PA2INDEX(pa)] -= 1;
+    count = ref.counts[PA2INDEX(pa)];
+    release(&ref.lock);
+
+    if(count == 0){
+        kfree((void *)pa);
+    }
+}
+
